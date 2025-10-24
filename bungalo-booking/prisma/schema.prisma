@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(STAFF)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Bungalow {
+  id                  Int       @id @default(autoincrement())
+  slug                String    @unique
+  title               String
+  description         String
+  pricePerNightCents  Int
+  capacity            Int
+  location            String
+  imageUrl            String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  bookings            Booking[]
+}
+
+model Booking {
+  id               Int           @id @default(autoincrement())
+  bungalowId       Int
+  bungalow         Bungalow      @relation(fields: [bungalowId], references: [id], onDelete: Cascade)
+  customerName     String
+  customerEmail    String
+  customerPhone    String?
+  checkIn          DateTime
+  checkOut         DateTime
+  guests           Int
+  totalPriceCents  Int
+  status           BookingStatus @default(PENDING)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([bungalowId, checkIn, checkOut])
+}
